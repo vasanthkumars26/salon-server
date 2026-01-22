@@ -19,9 +19,22 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 /* 🔹 MIDDLEWARE */
+const allowedOrigins = [
+  "http://localhost:5173",          // local dev
+  "https://salon-web-client.vercel.app", // production
+];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "*",
+    origin: (origin, callback) => {
+      // allow requests with no origin (like Postman, server-to-server)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
@@ -55,8 +68,12 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "*",
+    origin: [
+      "http://localhost:5173",
+      "https://salon-web-client.vercel.app",
+    ],
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
